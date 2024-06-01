@@ -212,7 +212,7 @@
         $("#formMultiSearch").submit(function (event) {
           event.preventDefault();
           let data = $(this).serializeArray();
-          //console.log(data);
+          //   console.log(data);
           let ids = data
             .find((x) => x.name == "ids")
             .value.trim()
@@ -243,17 +243,23 @@
           (async (ids) => {
             for (let i = 0; i < ids.length; ++i) {
               let id = ids[i].trim();
-              let response = await fetch(
-                "https://online-gateway.ghn.vn/order-tracking/public-api/client/tracking-logs",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ order_code: id }),
-                }
-              );
-              let json = await response.json();
+              let countResponse = 0;
+              let json;
+              while ((!json || json.code != 200) && countResponse < 50) {
+                let response = await fetch(
+                  "https://online-gateway.ghn.vn/order-tracking/public-api/client/tracking-logs",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ order_code: id }),
+                  }
+                );
+                json = await response.json();
+                // console.log(response);
+              }
+
               //callog
               let jsonCallLog = null;
               if (filter.findIndex((x) => x == "call_times") != -1) {
@@ -419,6 +425,7 @@
                   (filter.findIndex((x) => x == "name_NV") != -1) |
                   (filter.findIndex((x) => x == "reason") != -1)
                 ) {
+                  console.log(json);
                   let data1 = json.data;
                   let tenNV = 0;
                   //ALL DATA CHO NAY
